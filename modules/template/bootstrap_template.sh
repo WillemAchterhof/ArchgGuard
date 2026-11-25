@@ -21,7 +21,7 @@
 # Module Environment
 # ==============================================================================
 
-readonly TEMPLATE_PATH="$MODULES_DIR/template"
+readonly TEMPLATE_DIR="$MODULES_DIR/template"
 
 # ==============================================================================
 # Module Components
@@ -36,7 +36,7 @@ readonly -a TEMPLATE_COMPONENTS=(
 # ==============================================================================
 
 load_template_components() {
-    load_components "$TEMPLATE_PATH" "$@"
+    load_components "$TEMPLATE_DIR" "$@"
 }
 
 # ==============================================================================
