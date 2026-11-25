@@ -15,14 +15,15 @@
 #   - lsblk
 #
 # Populates:
-#   - AG_STORAGE_DISK_CLASS
-#   - AG_STORAGE_DISK_TRANSPORT
-#   - AG_STORAGE_DISK_REMOVABLE
 #   - AG_STORAGE_USB_DISKS
 #   - AG_STORAGE_INTERNAL_DISKS
 #   - AG_STORAGE_OTHER_DISKS
+#
+# Constraints:
+#   - Definitions only; no source-time side effects.
+#   - Does not discover devices.
+#   - Does not select or modify devices.
 # ==============================================================================
-
 
 # ==============================================================================
 # Classify Storage Devices
@@ -32,11 +33,6 @@ storage_classify_disks() {
 
     local device
     local transport
-    local removable
-
-    declare -gA AG_STORAGE_DISK_CLASS=()
-    declare -gA AG_STORAGE_DISK_TRANSPORT=()
-    declare -gA AG_STORAGE_DISK_REMOVABLE=()
 
     declare -g -a AG_STORAGE_USB_DISKS=()
     declare -g -a AG_STORAGE_INTERNAL_DISKS=()
@@ -45,21 +41,14 @@ storage_classify_disks() {
     for device in "${AG_STORAGE_DISKS[@]}"; do
 
         # ----------------------------------------------------------------------
-        # Read device properties
+        # Read device transport
         # ----------------------------------------------------------------------
 
-        if ! read -r transport removable < <(
-            lsblk -dnro TRAN,RM "$device" 2>/dev/null
-        ); then
+        if ! transport=$(lsblk -dnro TRAN "$device" 2>/dev/null); then
             warn "Unable to classify storage device: $device"
+            AG_STORAGE_OTHER_DISKS+=("$device")
             continue
         fi
-
-        transport="${transport:-unknown}"
-        removable="${removable:-unknown}"
-
-        AG_STORAGE_DISK_TRANSPORT["$device"]="$transport"
-        AG_STORAGE_DISK_REMOVABLE["$device"]="$removable"
 
         # ----------------------------------------------------------------------
         # Classify device
@@ -68,17 +57,14 @@ storage_classify_disks() {
         case "$transport" in
 
             usb)
-                AG_STORAGE_DISK_CLASS["$device"]="usb"
                 AG_STORAGE_USB_DISKS+=("$device")
                 ;;
 
             nvme|sata|ata|sas)
-                AG_STORAGE_DISK_CLASS["$device"]="internal"
                 AG_STORAGE_INTERNAL_DISKS+=("$device")
                 ;;
 
             *)
-                AG_STORAGE_DISK_CLASS["$device"]="other"
                 AG_STORAGE_OTHER_DISKS+=("$device")
                 ;;
 
