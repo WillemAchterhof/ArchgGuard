@@ -21,7 +21,7 @@
 # Module Environment
 # ==============================================================================
 
-readonly TEMPLATE_PATH="$PROJECT_DIR/modules/template"
+readonly TEMPLATE_PATH="$MODULES_DIR/template"
 
 # ==============================================================================
 # Module Components
