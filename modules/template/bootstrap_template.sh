@@ -24,19 +24,11 @@
 readonly TEMPLATE_DIR="$MODULES_DIR/template"
 
 # ==============================================================================
-# Module Components
-# ==============================================================================
-
-readonly -a TEMPLATE_COMPONENTS=(
-    "template_run.sh"
-)
-
-# ==============================================================================
 # Load Module Components
 # ==============================================================================
 
 load_template_components() {
-    load_components "$TEMPLATE_DIR" "$@"
+    load_components "$TEMPLATE_DIR" "template_run.sh"
 }
 
 # ==============================================================================
@@ -44,6 +36,6 @@ load_template_components() {
 # ==============================================================================
 
 bootstrap_template() {
-    load_template_components "${TEMPLATE_COMPONENTS[@]}"
+    load_template_components
     success "Completed: Template bootstrap"
 }
