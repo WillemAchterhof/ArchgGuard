@@ -32,6 +32,7 @@ readonly PROJECT_DIR
 
 readonly LIB_DIR="$PROJECT_DIR/lib"
 readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
+readonly MODULES_PATH="$PROJECT_DIR/modules"
 
 # ==============================================================================
 # Bootstrap Libraries
