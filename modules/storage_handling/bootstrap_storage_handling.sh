@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Storage Handling Bootstrap
+# Template Module Bootstrap
 # ==============================================================================
 # modules/storage_handling/bootstrap_storage_handling.sh
 #
-# Initializes the storage handling module and loads its components.
+# Prepares the storage_handling module.
 #
-# Provides:
-#   - bootstrap_storage_handling()
+# Responsibilities:
+#   - Establish module paths
+#   - Load module components
 #
-# Global variables:
-#   - STORAGE_HANDLING_DIR
-#   - SELECTED_USB_DISK
-#   - SELECTED_INTERNAL_DISK
+# Constraints:
+#   - Definitions only at top level; all work happens in bootstrap_storage_handling.
+#   - Components are loaded, never executed.
+#   - Inherits PROJECT_DIR, shell options and traps from the orchestrator.
 # ==============================================================================
 
 # ==============================================================================
@@ -21,37 +22,24 @@
 # ==============================================================================
 
 readonly STORAGE_HANDLING_DIR="$MODULES_DIR/storage_handling"
+readonly STORAGE_HANDLING_DISCOVERY="$STORAGE_HANDLING_DIR/discovery"
 
-declare -g SELECTED_USB_DISK=""
-declare -g SELECTED_INTERNAL_DISK=""
-    
 # ==============================================================================
-# Module Components
+# Load Module Components
 # ==============================================================================
 
-readonly -a STORAGE_HANDLING_COMPONENTS=(
-    "$STORAGE_HANDLING_DIR/discovery"    "storage_discovery.sh"
-    "$STORAGE_HANDLING_DIR/discovery"    "storage_classification.sh"
+load_storage_handling_components() {
+    # load_components "$STORAGE_HANDLING_DIR"         "storage_handling_run.sh"
 
-    "$STORAGE_HANDLING_DIR/selection"    "storage_usb.sh"
-    "$STORAGE_HANDLING_DIR/selection"    "storage_internal.sh"
-    "$STORAGE_HANDLING_DIR/selection"    "storage_selection.sh"
-    "$STORAGE_HANDLING_DIR/selection"    "storage_validation.sh"
-
-    "$STORAGE_HANDLING_DIR/partitioning" "storage_partitioning.sh"
-    "$STORAGE_HANDLING_DIR/partitioning" "storage_partition_validation.sh"
-
-    "$STORAGE_HANDLING_DIR/formatting"   "storage_formatting.sh"
-    "$STORAGE_HANDLING_DIR/formatting"   "storage_format_validation.sh"
-
-    "$STORAGE_HANDLING_DIR/mounting"     "storage_mounting.sh"
-)
+    load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_discovery.sh"
+    load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_classification.sh"
+}
 
 # ==============================================================================
 # Bootstrap
 # ==============================================================================
 
 bootstrap_storage_handling() {
-    load_template_components
-    success "Completed: Storage Handling bootstrap"
+    load_storage_handling_components
+    success "Completed: Template bootstrap"
 }

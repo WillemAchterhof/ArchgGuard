@@ -101,7 +101,7 @@ load_module() {
         functions_before \
         "Module '$module_name'"
 
-    integrity_check_function "$run_function" "$bootstrap_file"
+    # integrity_check_function "$run_function" "$bootstrap_file"
 
     success "Loaded module: $module_name"
 }

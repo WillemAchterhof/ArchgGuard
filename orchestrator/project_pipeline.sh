@@ -24,6 +24,7 @@
 
 readonly -a PIPELINE_MODULES=(
     "template"
+    "storage_handling"
     # ... module load order grows here
 )
 
