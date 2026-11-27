@@ -29,8 +29,6 @@ readonly STORAGE_HANDLING_DISCOVERY="$STORAGE_HANDLING_DIR/discovery"
 # ==============================================================================
 
 load_storage_handling_components() {
-    # load_components "$STORAGE_HANDLING_DIR"         "storage_handling_run.sh"
-
     load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_discovery.sh"
     load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_classification.sh"
 }
