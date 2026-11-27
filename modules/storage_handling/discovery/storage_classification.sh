@@ -11,13 +11,13 @@
 #   - storage_classify_disks()
 #
 # Requires:
-#   - AG_STORAGE_DISKS
+#   - STORAGE_DISKS
 #   - lsblk
 #
 # Populates:
-#   - AG_STORAGE_USB_DISKS
-#   - AG_STORAGE_INTERNAL_DISKS
-#   - AG_STORAGE_OTHER_DISKS
+#   - STORAGE_USB_DISKS
+#   - STORAGE_INTERNAL_DISKS
+#   - STORAGE_OTHER_DISKS
 #
 # Constraints:
 #   - Definitions only; no source-time side effects.
@@ -34,11 +34,11 @@ storage_classify_disks() {
     local device
     local transport
 
-    declare -g -a AG_STORAGE_USB_DISKS=()
-    declare -g -a AG_STORAGE_INTERNAL_DISKS=()
-    declare -g -a AG_STORAGE_OTHER_DISKS=()
+    declare -g -a STORAGE_USB_DISKS=()
+    declare -g -a STORAGE_INTERNAL_DISKS=()
+    declare -g -a STORAGE_OTHER_DISKS=()
 
-    for device in "${AG_STORAGE_DISKS[@]}"; do
+    for device in "${STORAGE_DISKS[@]}"; do
 
         # ----------------------------------------------------------------------
         # Read device transport
@@ -46,7 +46,7 @@ storage_classify_disks() {
 
         if ! transport=$(lsblk -dnro TRAN "$device" 2>/dev/null); then
             warn "Unable to classify storage device: $device"
-            AG_STORAGE_OTHER_DISKS+=("$device")
+            STORAGE_OTHER_DISKS+=("$device")
             continue
         fi
 
@@ -57,15 +57,15 @@ storage_classify_disks() {
         case "$transport" in
 
             usb)
-                AG_STORAGE_USB_DISKS+=("$device")
+                STORAGE_USB_DISKS+=("$device")
                 ;;
 
             nvme|sata|ata|sas)
-                AG_STORAGE_INTERNAL_DISKS+=("$device")
+                STORAGE_INTERNAL_DISKS+=("$device")
                 ;;
 
             *)
-                AG_STORAGE_OTHER_DISKS+=("$device")
+                STORAGE_OTHER_DISKS+=("$device")
                 ;;
 
         esac
