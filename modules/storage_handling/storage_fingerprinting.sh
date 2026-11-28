@@ -7,34 +7,16 @@
 #
 # Captures and stores storage device fingerprints.
 #
-# Responsibilities:
-#   - Capture the identity of a selected storage device
-#   - Store USB storage fingerprints in global variables
-#   - Persist internal storage fingerprints to the ArchGuard USB
-#   - Update existing fingerprints when a new device is selected
-#   - Ensure a reliable device identifier is available
-#
 # Provides:
 #   - storage_fingerprinting_usb()
 #   - storage_fingerprinting_internal()
 #   - storage_fingerprinting()
 #
-# Populates:
-#   - SELECTED_STORAGE_USB_SERIAL
-#   - SELECTED_STORAGE_USB_WWN
-#   - SELECTED_STORAGE_USB_MODEL
-#   - SELECTED_STORAGE_USB_SIZE
-#   - SELECTED_STORAGE_USB_TRANSPORT
-#   - SELECTED_STORAGE_INTERNAL_SERIAL
-#   - SELECTED_STORAGE_INTERNAL_WWN
-#   - SELECTED_STORAGE_INTERNAL_MODEL
-#   - SELECTED_STORAGE_INTERNAL_SIZE
-#   - SELECTED_STORAGE_INTERNAL_TRANSPORT
-#
 # Dependencies:
 #   - lsblk
 #   - msg()
 #   - warn()
+#   - trap_err()
 #   - PROJECT_CONFIGURATION_DIR
 #
 # Constraints:
@@ -48,14 +30,32 @@
 
 
 # ==============================================================================
+# Centralized Unexpected Command Failure
+# ==============================================================================
+
+_storage_fingerprinting_command_failure() {
+
+    local exit_code="$1"
+    local failing_command="$2"
+    local line="$3"
+    local caller_line="${BASH_LINENO[0]:-unknown}"
+
+    trap_err "$exit_code" "$failing_command" "$line" "$caller_line"
+}
+
+
+# ==============================================================================
 # USB Storage Fingerprinting
 # ==============================================================================
 
 storage_fingerprinting_usb() {
 
-    local storage_device="$1"
+    if (( $# != 1 )); then
+        warn "storage_fingerprinting_usb requires exactly one device argument"
+        return 1
+    fi
 
-    storage_fingerprinting "$storage_device" usb
+    storage_fingerprinting "$1" usb
 }
 
 
@@ -65,9 +65,12 @@ storage_fingerprinting_usb() {
 
 storage_fingerprinting_internal() {
 
-    local storage_device="$1"
+    if (( $# != 1 )); then
+        warn "storage_fingerprinting_internal requires exactly one device argument"
+        return 1
+    fi
 
-    storage_fingerprinting "$storage_device" internal
+    storage_fingerprinting "$1" internal
 }
 
 
@@ -76,6 +79,11 @@ storage_fingerprinting_internal() {
 # ==============================================================================
 
 storage_fingerprinting() {
+
+    if (( $# != 2 )); then
+        warn "storage_fingerprinting requires a device and storage type"
+        return 1
+    fi
 
     local storage_device="$1"
     local storage_type="$2"
@@ -89,6 +97,9 @@ storage_fingerprinting() {
 
     local fingerprint_file
     local temporary_file
+
+    local command_line
+    local command_status
 
 
     # --------------------------------------------------------------------------
@@ -111,13 +122,8 @@ storage_fingerprinting() {
 
 
     # --------------------------------------------------------------------------
-    # Verify dependencies
+    # Validate device
     # --------------------------------------------------------------------------
-
-    if ! command -v lsblk >/dev/null 2>&1; then
-        warn "Required command not found: lsblk"
-        return 1
-    fi
 
     if [[ ! -b "$storage_device" ]]; then
         warn "Storage device does not exist or is not a block device: $storage_device"
@@ -129,8 +135,16 @@ storage_fingerprinting() {
     # Verify device type
     # --------------------------------------------------------------------------
 
-    if ! device_type=$(lsblk -dnro TYPE "$storage_device" 2>/dev/null); then
-        warn "Unable to determine storage device type: $storage_device"
+    command_line=$LINENO
+
+    if device_type=$(lsblk -dnro TYPE "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -dnro TYPE $storage_device" \
+            "$command_line"
         return 1
     fi
 
@@ -144,28 +158,68 @@ storage_fingerprinting() {
     # Capture device identity
     # --------------------------------------------------------------------------
 
-    if ! serial=$(lsblk -dnro SERIAL "$storage_device" 2>/dev/null); then
-        warn "Unable to read storage device serial number: $storage_device"
+    command_line=$LINENO
+
+    if serial=$(lsblk -dnro SERIAL "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -dnro SERIAL $storage_device" \
+            "$command_line"
         return 1
     fi
 
-    if ! wwn=$(lsblk -dnro WWN "$storage_device" 2>/dev/null); then
-        warn "Unable to read storage device WWN: $storage_device"
+    command_line=$LINENO
+
+    if wwn=$(lsblk -dnro WWN "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -dnro WWN $storage_device" \
+            "$command_line"
         return 1
     fi
 
-    if ! model=$(lsblk -dnro MODEL "$storage_device" 2>/dev/null); then
-        warn "Unable to read storage device model: $storage_device"
+    command_line=$LINENO
+
+    if model=$(lsblk -dnro MODEL "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -dnro MODEL $storage_device" \
+            "$command_line"
         return 1
     fi
 
-    if ! size=$(lsblk -b -dnro SIZE "$storage_device" 2>/dev/null); then
-        warn "Unable to read storage device size: $storage_device"
+    command_line=$LINENO
+
+    if size=$(lsblk -b -dnro SIZE "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -b -dnro SIZE $storage_device" \
+            "$command_line"
         return 1
     fi
 
-    if ! transport=$(lsblk -dnro TRAN "$storage_device" 2>/dev/null); then
-        warn "Unable to read storage device transport: $storage_device"
+    command_line=$LINENO
+
+    if transport=$(lsblk -dnro TRAN "$storage_device" 2>/dev/null); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "lsblk -dnro TRAN $storage_device" \
+            "$command_line"
         return 1
     fi
 
@@ -200,7 +254,7 @@ storage_fingerprinting() {
 
 
     # --------------------------------------------------------------------------
-    # Persist internal storage fingerprint
+    # Validate configuration directory
     # --------------------------------------------------------------------------
 
     if [[ -z "${PROJECT_CONFIGURATION_DIR:-}" ]]; then
@@ -215,12 +269,41 @@ storage_fingerprinting() {
 
     fingerprint_file="$PROJECT_CONFIGURATION_DIR/internal_disk.fingerprint"
 
+
     # --------------------------------------------------------------------------
     # Create temporary fingerprint file
     # --------------------------------------------------------------------------
 
-    if ! temporary_file=$(mktemp "$PROJECT_CONFIGURATION_DIR/.internal_disk.XXXXXX"); then
-        warn "Unable to create temporary fingerprint file"
+    command_line=$LINENO
+
+    if temporary_file=$(mktemp "$PROJECT_CONFIGURATION_DIR/.internal_disk.XXXXXX"); then
+        :
+    else
+        command_status=$?
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "mktemp internal storage fingerprint" \
+            "$command_line"
+        return 1
+    fi
+
+
+    # --------------------------------------------------------------------------
+    # Set temporary file permissions
+    # --------------------------------------------------------------------------
+
+    command_line=$LINENO
+
+    if chmod 600 "$temporary_file"; then
+        :
+    else
+        command_status=$?
+        rm -f "$temporary_file" 2>/dev/null || true
+
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "chmod 600 $temporary_file" \
+            "$command_line"
         return 1
     fi
 
@@ -229,20 +312,26 @@ storage_fingerprinting() {
     # Write fingerprint
     # --------------------------------------------------------------------------
 
-    if ! chmod 600 "$temporary_file" ||
-       ! printf '%s\n' \
-            "FORMAT_VERSION=1" \
-            "DEVICE_PATH=$storage_device" \
-            "DEVICE_SERIAL=$serial" \
-            "DEVICE_WWN=$wwn" \
-            "DEVICE_MODEL=$model" \
-            "DEVICE_SIZE=$size" \
-            "DEVICE_TRANSPORT=$transport" \
-            > "$temporary_file"; then
+    command_line=$LINENO
 
-        rm -f "$temporary_file"
+    if printf '%s\n' \
+        "FORMAT_VERSION=1" \
+        "DEVICE_PATH=$storage_device" \
+        "DEVICE_SERIAL=$serial" \
+        "DEVICE_WWN=$wwn" \
+        "DEVICE_MODEL=$model" \
+        "DEVICE_SIZE=$size" \
+        "DEVICE_TRANSPORT=$transport" \
+        > "$temporary_file"; then
+        :
+    else
+        command_status=$?
+        rm -f "$temporary_file" 2>/dev/null || true
 
-        warn "Unable to write internal storage fingerprint"
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "write internal storage fingerprint" \
+            "$command_line"
         return 1
     fi
 
@@ -251,11 +340,18 @@ storage_fingerprinting() {
     # Atomically replace existing fingerprint
     # --------------------------------------------------------------------------
 
-    if ! mv -f "$temporary_file" "$fingerprint_file"; then
+    command_line=$LINENO
 
-        rm -f "$temporary_file"
+    if mv -f "$temporary_file" "$fingerprint_file"; then
+        :
+    else
+        command_status=$?
+        rm -f "$temporary_file" 2>/dev/null || true
 
-        warn "Unable to update internal storage fingerprint"
+        _storage_fingerprinting_command_failure \
+            "$command_status" \
+            "mv internal storage fingerprint" \
+            "$command_line"
         return 1
     fi
 

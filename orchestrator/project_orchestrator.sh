@@ -10,7 +10,7 @@
 # Responsibilities:
 #   - Define the execution order of module functions
 #   - Verify every function exists before running any of them
-#   - Call the functions one by one
+#   - Casoull the functions one by one
 #
 # Dependencies:
 #   - msg()
@@ -26,10 +26,23 @@
 # Execution Order
 # ==============================================================================
 
+run_storage_fingerprinting_test() {
+    storage_fingerprinting_usb "/dev/sda"
+}
+
+run_storage_verification_test() {
+    printf '\n'
+    read -r -p "Unmount the USB device, replace it, then press Enter to continue..."
+
+    storage_verification "/dev/sda" "usb"
+}
+
 orchestrator_steps_initialization() {
     
     readonly -a ORCHESTRATOR_STEPS=(
-        "run_template"
+        run_template
+        run_storage_fingerprinting_test
+        run_storage_verification_test
         # ... execution order grows here
     )
 }
