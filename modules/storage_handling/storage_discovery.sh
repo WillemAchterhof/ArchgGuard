@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 # ==============================================================================
@@ -15,11 +14,11 @@
 #   - Maintain the discovered device count
 #
 # Provides:
-#   - storage_discover_disks()
+#   - storage_disks_discover()
 #
 # Populates:
-#   - AG_STORAGE_DISKS
-#   - AG_STORAGE_DISK_COUNT
+#   - STORAGE_DISKS
+#   - STORAGE_DISK_COUNT
 #
 # Dependencies:
 #   - lsblk
@@ -38,13 +37,14 @@
 # Discover Storage Devices
 # ==============================================================================
 
-storage_discover_disks() {
+storage_disks_discover() {
+
     local lsblk_output
     local device
     local type
 
-    declare -g -a AG_STORAGE_DISKS=()
-    declare -g -i AG_STORAGE_DISK_COUNT=0
+    declare -g -a STORAGE_DISKS=()
+    declare -g -i STORAGE_DISK_COUNT=0
 
     # --------------------------------------------------------------------------
     # Verify dependency
@@ -69,7 +69,7 @@ storage_discover_disks() {
         [[ "$type" == "disk" ]] || continue
         [[ -b "$device" ]] || continue
 
-        AG_STORAGE_DISKS+=("$device")
+        STORAGE_DISKS+=("$device")
 
     done <<< "$lsblk_output"
 
@@ -77,12 +77,12 @@ storage_discover_disks() {
     # Update inventory count
     # --------------------------------------------------------------------------
 
-    AG_STORAGE_DISK_COUNT="${#AG_STORAGE_DISKS[@]}"
+    STORAGE_DISK_COUNT="${#STORAGE_DISKS[@]}"
 
-    if (( AG_STORAGE_DISK_COUNT == 0 )); then
+    if (( STORAGE_DISK_COUNT == 0 )); then
         warn "No storage devices detected"
         return 0
     fi
 
-    msg "Discovered storage devices: $AG_STORAGE_DISK_COUNT"
+    msg "Discovered storage devices: $STORAGE_DISK_COUNT"
 }

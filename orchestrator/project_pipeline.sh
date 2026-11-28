@@ -22,17 +22,23 @@
 # Pipeline
 # ==============================================================================
 
-readonly -a PIPELINE_MODULES=(
-    "template"
-    "storage_handling"
-    # ... module load order grows here
-)
+pipeline_modules_initialization() {
+    
+    readonly -a PIPELINE_MODULES=(
+        "template"
+        "storage_handling"
+        # ... module load order grows here
+    )
+}
 
 # ==============================================================================
 # Load Pipeline Modules
 # ==============================================================================
 
 load_pipeline_modules() {
+
+    pipeline_modules_initialization
+
     local module_name
 
     for module_name in "${PIPELINE_MODULES[@]}"; do

@@ -27,36 +27,43 @@ set -Eeuo pipefail
 # Project Paths
 # ==============================================================================
 
-PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
-readonly PROJECT_DIR
+orchestrator_initialization() {
 
-readonly LIB_DIR="$PROJECT_DIR/lib"
-readonly ORCHESTRATOR_DIR="$PROJECT_DIR/orchestrator"
-readonly MODULES_DIR="$PROJECT_DIR/modules"
+    PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+    readonly PROJECT_DIR
 
-# ==============================================================================
-# Bootstrap Libraries
-# ==============================================================================
+    readonly PROJECT_CONFIGURATION_DIR="$PROJECT_DIR/configuration"
+    readonly LIB_DIR="$PROJECT_DIR/lib"
+    readonly ORCHESTRATOR_DIR="$PROJECT_DIR/orchestrator"
+    readonly MODULES_DIR="$PROJECT_DIR/modules"
 
-readonly -a BOOTSTRAP_LIBRARIES=(
-    "core/bootstrap_core.sh"
-    "integrity/bootstrap_integrity.sh"
-)
+    # ==============================================================================
+    # Bootstrap Libraries
+    # ==============================================================================
 
-# ==============================================================================
-# Orchestrator Components
-# ==============================================================================
+    readonly -a BOOTSTRAP_LIBRARIES=(
 
-readonly -a ORCHESTRATOR_COMPONENTS=(
-    "project_pipeline.sh"
-    "project_orchestrator.sh"
-)
+        "core/bootstrap_core.sh"
+        "integrity/bootstrap_integrity.sh"
+    )
+
+    # ==============================================================================
+    # Orchestrator Components
+    # ==============================================================================
+
+    readonly -a ORCHESTRATOR_COMPONENTS=(
+
+        "project_pipeline.sh"
+        "project_orchestrator.sh"
+    )
+}
 
 # ==============================================================================
 # Load Bootstrap Libraries
 # ==============================================================================
 
 load_libraries() {
+
     local library
     local library_path
 
@@ -93,6 +100,7 @@ load_libraries() {
 # ==============================================================================
 
 load_error_handling() {
+
     trap 'trap_err "$?" "$BASH_COMMAND" "$LINENO" "${BASH_LINENO[0]}"' ERR
     trap 'exit 130' INT
     trap 'exit 143' TERM
@@ -113,6 +121,8 @@ load_orchestrator_components() {
 # ==============================================================================
 
 main() {
+
+    orchestrator_initialization
     load_libraries "${BOOTSTRAP_LIBRARIES[@]}"
 
     init_core_libraries

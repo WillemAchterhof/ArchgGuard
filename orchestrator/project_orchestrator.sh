@@ -26,16 +26,22 @@
 # Execution Order
 # ==============================================================================
 
-readonly -a ORCHESTRATOR_STEPS=(
-    "run_template"
-    # ... execution order grows here
-)
+orchestrator_steps_initialization() {
+    
+    readonly -a ORCHESTRATOR_STEPS=(
+        "run_template"
+        # ... execution order grows here
+    )
+}
 
 # ==============================================================================
 # Run Orchestrator
 # ==============================================================================
 
 run_orchestrator() {
+    
+    orchestrator_steps_initialization
+
     local step
 
     # Verify every execution function before running any of them.

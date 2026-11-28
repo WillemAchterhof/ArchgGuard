@@ -19,7 +19,8 @@
 # Helpers
 # ==============================================================================
 
-template_check() {
+template_check_initialization() {
+    
     msg "Checking template..."
 }
 
@@ -28,7 +29,8 @@ template_check() {
 # ==============================================================================
 
 run_template() {
-    template_check
+
+    template_check_initialization
 
     success "Completed: Template module execution"
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Template Module Bootstrap
+# Storage Handling Bootstrap
 # ==============================================================================
 # modules/storage_handling/bootstrap_storage_handling.sh
 #
@@ -18,26 +18,50 @@
 # ==============================================================================
 
 # ==============================================================================
-# Module Environment
+# Storage Handling Environment
 # ==============================================================================
 
-readonly STORAGE_HANDLING_DIR="$MODULES_DIR/storage_handling"
-readonly STORAGE_HANDLING_DISCOVERY="$STORAGE_HANDLING_DIR/discovery"
+storage_handling_initialization() {
 
-# ==============================================================================
-# Load Module Components
-# ==============================================================================
+    readonly STORAGE_HANDLING_DIR="$MODULES_DIR/storage_handling"
 
-load_storage_handling_components() {
-    load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_discovery.sh"
-    load_components "$STORAGE_HANDLING_DISCOVERY"   "storage_classification.sh"
+    # USB Storage Selection and Fingerprint
+    declare -g SELECTED_STORAGE_USB=""
+    declare -g SELECTED_STORAGE_USB_SERIAL=""
+    declare -g SELECTED_STORAGE_USB_WWN=""
+    declare -g SELECTED_STORAGE_USB_MODEL=""
+    declare -g SELECTED_STORAGE_USB_SIZE=""
+    declare -g SELECTED_STORAGE_USB_TRANSPORT=""
+
+    # Internal Storage Selection and Fingerprint
+    declare -g SELECTED_STORAGE_INTERNAL=""
+    declare -g SELECTED_STORAGE_INTERNAL_SERIAL=""
+    declare -g SELECTED_STORAGE_INTERNAL_WWN=""
+    declare -g SELECTED_STORAGE_INTERNAL_MODEL=""
+    declare -g SELECTED_STORAGE_INTERNAL_SIZE=""
+    declare -g SELECTED_STORAGE_INTERNAL_TRANSPORT=""
 }
 
 # ==============================================================================
-# Bootstrap
+# Storage Handling Load Components
+# ==============================================================================
+
+storage_handling_load_components() {
+
+    load_components "$STORAGE_HANDLING_DIR" "storage_discovery.sh"
+    load_components "$STORAGE_HANDLING_DIR" "storage_classification.sh"
+    load_components "$STORAGE_HANDLING_DIR" "storage_fingerprinting.sh"
+    load_components "$STORAGE_HANDLING_DIR" "storage_verification.sh"
+}
+
+# ==============================================================================
+# Storage Handling Bootstrap
 # ==============================================================================
 
 bootstrap_storage_handling() {
-    load_storage_handling_components
-    success "Completed: Template bootstrap"
+
+    storage_handling_initialization
+    storage_handling_load_components
+
+    success "Completed: Storage handling bootstrap"
 }

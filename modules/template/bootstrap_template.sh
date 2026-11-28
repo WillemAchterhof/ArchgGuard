@@ -21,13 +21,17 @@
 # Module Environment
 # ==============================================================================
 
-readonly TEMPLATE_DIR="$MODULES_DIR/template"
+template_initialization() {
+
+    readonly TEMPLATE_DIR="$MODULES_DIR/template"
+}
 
 # ==============================================================================
 # Load Module Components
 # ==============================================================================
 
 load_template_components() {
+
     load_components "$TEMPLATE_DIR" "template_run.sh"
 }
 
@@ -36,6 +40,9 @@ load_template_components() {
 # ==============================================================================
 
 bootstrap_template() {
+
+    template_initialization
     load_template_components
+    
     success "Completed: Template bootstrap"
 }
